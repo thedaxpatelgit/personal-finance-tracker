@@ -6,5 +6,29 @@
         "type": "expense",
         "category": "Food & Dining",
         "date": "2025-04-17"
+    },
+    {
+        "id": 1744877763.47529,
+        "title": "clubbing ",
+        "amount": -20.0,
+        "type": "expense",
+        "category": "Entertainment",
+        "date": "2025-04-17"
+    },
+    {
+        "id": 1744877786.460671,
+        "title": "Salary",
+        "amount": 1100.0,
+        "type": "income",
+        "category": "Salary",
+        "date": "2025-04-17"
+    },
+    {
+        "id": 1744878230.602895,
+        "title": "cleaning material",
+        "amount": -30.0,
+        "type": "expense",
+        "category": "Utilities",
+        "date": "2025-04-15"
     }
 ]

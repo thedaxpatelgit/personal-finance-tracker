@@ -1,0 +1,268 @@
+/* Base Styles */
+:root {
+    --primary-color: #3498db;
+    --accent-color: #2980b9;
+    --success-color: #2ecc71;
+    --danger-color: #e74c3c;
+    --text-color: #333;
+    --light-bg: #f9f9f9;
+    --card-bg: #ffffff;
+    --border-color: #e0e0e0;
+    --shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+    color: var(--text-color);
+    background-color: var(--light-bg);
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* Header Styles */
+header {
+    text-align: center;
+    padding: 40px 0;
+    background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+    color: white;
+    border-radius: 0 0 10px 10px;
+    margin-bottom: 30px;
+}
+
+header h1 {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+}
+
+header .tagline {
+    font-size: 1.2rem;
+    opacity: 0.9;
+}
+
+/* Main Content Layout */
+main {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 30px;
+    margin-bottom: 40px;
+}
+
+@media (min-width: 768px) {
+    main {
+        grid-template-columns: 350px 1fr;
+    }
+}
+
+/* Form Styles */
+.transaction-form {
+    background-color: var(--card-bg);
+    padding: 25px;
+    border-radius: 10px;
+    box-shadow: var(--shadow);
+}
+
+.transaction-form h2 {
+    margin-bottom: 20px;
+    color: var(--primary-color);
+    font-size: 1.5rem;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+}
+
+input[type="text"],
+input[type="number"],
+input[type="date"],
+select {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    font-size: 1rem;
+    outline: none;
+    transition: border-color 0.3s;
+}
+
+input:focus, select:focus {
+    border-color: var(--primary-color);
+}
+
+.amount-input {
+    position: relative;
+}
+
+.currency {
+    position: absolute;
+    left: 15px;
+    top: 12px;
+    font-weight: 600;
+}
+
+input[name="amount"] {
+    padding-left: 28px;
+}
+
+.btn-submit {
+    width: 100%;
+    padding: 12px;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.btn-submit:hover {
+    background-color: var(--accent-color);
+}
+
+/* Transactions Section */
+.transactions {
+    background-color: var(--card-bg);
+    padding: 25px;
+    border-radius: 10px;
+    box-shadow: var(--shadow);
+}
+
+.transactions h2 {
+    margin-bottom: 20px;
+    color: var(--primary-color);
+    font-size: 1.5rem;
+}
+
+/* Summary Cards */
+.summary-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+.summary-card {
+    padding: 15px;
+    border-radius: 8px;
+    text-align: center;
+    color: white;
+}
+
+.income {
+    background-color: var(--success-color);
+}
+
+.expenses {
+    background-color: var(--danger-color);
+}
+
+.balance {
+    background-color: var(--primary-color);
+}
+
+.summary-card h3 {
+    font-size: 1rem;
+    margin-bottom: 5px;
+}
+
+.summary-card p {
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+/* Transaction Filters */
+.transaction-filters {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.filter-btn {
+    padding: 8px 15px;
+    background-color: #f1f1f1;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s;
+}
+
+.filter-btn.active {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+/* Transaction List */
+.transaction-list-container {
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+thead th {
+    background-color: #f1f1f1;
+    padding: 12px;
+    text-align: left;
+    font-weight: 600;
+}
+
+tbody td {
+    padding: 12px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.income-amount {
+    color: var(--success-color);
+    font-weight: 600;
+}
+
+.expense-amount {
+    color: var(--danger-color);
+    font-weight: 600;
+}
+
+.no-data {
+    text-align: center;
+    padding: 20px;
+    color: #777;
+    font-style: italic;
+}
+
+/* Footer */
+footer {
+    text-align: center;
+    padding: 20px 0;
+    margin-top: 20px;
+    color: #777;
+    font-size: 0.9rem;
+}
+
+/* Transaction Type Specific */
+.transaction-type-income {
+    border-left: 4px solid var(--success-color);
+}
+
+.transaction-type-expense {
+    border-left: 4px solid var(--danger-color);
+}

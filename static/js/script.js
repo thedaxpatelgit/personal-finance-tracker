@@ -1,4 +1,9 @@
+// Personal Finance Tracker v3 - Main JavaScript
+console.log("Script.js loaded - v3 SQLite version");
+
 document.addEventListener('DOMContentLoaded', function() {
+    console.log("DOM loaded");
+    
     // Define categories
     const categories = {
         income: [
@@ -25,9 +30,6 @@ document.addEventListener('DOMContentLoaded', function() {
         ]
     };
     
-    // Initialize Material Components
-    initializeMaterialComponents();
-    
     // Initialize date field with today's date
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('date').value = today;
@@ -46,27 +48,11 @@ document.addEventListener('DOMContentLoaded', function() {
         const categoryList = type === 'all' ? [...categories.income, ...categories.expense] : categories[type];
         
         categoryList.forEach(category => {
-            const listItem = document.createElement('li');
-            listItem.classList.add('mdc-list-item');
-            listItem.dataset.value = category;
-            
-            const rippleSpan = document.createElement('span');
-            rippleSpan.classList.add('mdc-list-item__ripple');
-            
-            const textSpan = document.createElement('span');
-            textSpan.classList.add('mdc-list-item__text');
-            textSpan.textContent = category;
-            
-            listItem.appendChild(rippleSpan);
-            listItem.appendChild(textSpan);
-            categoryElement.appendChild(listItem);
+            const option = document.createElement('option');
+            option.value = category;
+            option.textContent = category;
+            categoryElement.appendChild(option);
         });
-        
-        // Make sure to reinitialize the MDC select
-        const select = categoryElement.closest('.mdc-select');
-        if (select && select.MDCSelect) {
-            select.MDCSelect.layoutOptions();
-        }
     }
     
     // Initialize form categories (default to income)
@@ -87,35 +73,60 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Add categories
         allCategories.forEach(category => {
-            const listItem = document.createElement('li');
-            listItem.classList.add('mdc-list-item');
-            listItem.dataset.value = category;
-            
-            const rippleSpan = document.createElement('span');
-            rippleSpan.classList.add('mdc-list-item__ripple');
-            
-            const textSpan = document.createElement('span');
-            textSpan.classList.add('mdc-list-item__text');
-            textSpan.textContent = category;
-            
-            listItem.appendChild(rippleSpan);
-            listItem.appendChild(textSpan);
-            filterCategorySelect.appendChild(listItem);
+            const option = document.createElement('option');
+            option.value = category;
+            option.textContent = category;
+            filterCategorySelect.appendChild(option);
         });
-        
-        // Make sure to reinitialize the MDC select
-        const select = filterCategorySelect.closest('.mdc-select');
-        if (select && select.MDCSelect) {
-            select.MDCSelect.layoutOptions();
-        }
     }
     
     // Update categories when transaction type changes
     if (transactionTypeSelect) {
-        transactionTypeSelect.addEventListener('MDCSelect:change', function(e) {
-            const type = e.detail.value;
+        transactionTypeSelect.addEventListener('change', function() {
+            const type = this.value;
             populateCategories(type, categorySelect);
         });
+    }
+    
+    // Tab functionality
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    const chartContainers = document.querySelectorAll('.chart-container');
+    
+    tabButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            // Remove active class from all buttons and containers
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+            chartContainers.forEach(container => container.classList.remove('active'));
+            
+            // Add active class to clicked button
+            this.classList.add('active');
+            
+            // Show corresponding container
+            const tabId = this.getAttribute('data-tab');
+            document.getElementById(`${tabId}-chart-container`).classList.add('active');
+        });
+    });
+    
+    // Theme toggle functionality
+    const themeToggleBtn = document.getElementById('toggle-theme-btn');
+    const themeIcon = themeToggleBtn.querySelector('i');
+    
+    themeToggleBtn.addEventListener('click', function() {
+        document.body.classList.toggle('dark-theme');
+        
+        if (document.body.classList.contains('dark-theme')) {
+            themeIcon.textContent = 'light_mode';
+            localStorage.setItem('dark-theme', 'true');
+        } else {
+            themeIcon.textContent = 'dark_mode';
+            localStorage.setItem('dark-theme', 'false');
+        }
+    });
+    
+    // Check for saved theme preference
+    if (localStorage.getItem('dark-theme') === 'true') {
+        document.body.classList.add('dark-theme');
+        themeIcon.textContent = 'light_mode';
     }
     
     // Load transactions when page loads
@@ -128,18 +139,12 @@ document.addEventListener('DOMContentLoaded', function() {
         form.addEventListener('submit', function(e) {
             e.preventDefault();
             
-            // Get form values from MDC components
-            const titleField = document.getElementById('title');
-            const amountField = document.getElementById('amount');
-            const dateField = document.getElementById('date');
-            
-            const title = titleField.value;
-            let amount = parseFloat(amountField.value);
-            const transactionTypeSelect = document.querySelector('#transaction-type').closest('.mdc-select').MDCSelect;
-            const categorySelect = document.querySelector('#category').closest('.mdc-select').MDCSelect;
-            const transactionType = transactionTypeSelect.value;
-            const category = categorySelect.value;
-            const date = dateField.value;
+            // Get form values
+            const title = document.getElementById('title').value;
+            let amount = parseFloat(document.getElementById('amount').value);
+            const transactionType = document.getElementById('transaction-type').value;
+            const category = document.getElementById('category').value;
+            const date = document.getElementById('date').value;
             
             // Validate inputs
             if (!title || isNaN(amount) || !date) {
@@ -163,6 +168,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 date: date
             };
             
+            console.log("Saving transaction:", transaction);
+            
             // Send to backend
             saveTransaction(transaction);
         });
@@ -172,8 +179,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const applyFiltersBtn = document.getElementById('apply-filters');
     if (applyFiltersBtn) {
         applyFiltersBtn.addEventListener('click', function() {
-            loadTransactions(getFilterParameters());
-            loadSummary(getFilterParameters());
+            const filters = getFilterParameters();
+            console.log("Applying filters:", filters);
+            loadTransactions(filters);
+            loadSummary(filters);
         });
     }
     
@@ -187,35 +196,11 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Function to get current filter parameters
-    function getFilterParameters() {
-        const startDate = document.getElementById('filter-start-date').value;
-        const endDate = document.getElementById('filter-end-date').value;
-        const typeSelect = document.querySelector('#filter-type').closest('.mdc-select').MDCSelect;
-        const categorySelect = document.querySelector('#filter-category').closest('.mdc-select').MDCSelect;
-        
-        return {
-            start_date: startDate,
-            end_date: endDate,
-            type: typeSelect.value === 'all' ? '' : typeSelect.value,
-            category: categorySelect.value === 'all' ? '' : categorySelect.value
-        };
-    }
+    // Setup Edit/Delete Modal functionality
+    setupModalFunctionality();
     
-    // Function to clear filters
-    function clearFilters() {
-        document.getElementById('filter-start-date').value = '';
-        document.getElementById('filter-end-date').value = '';
-        
-        const typeSelect = document.querySelector('#filter-type').closest('.mdc-select').MDCSelect;
-        const categorySelect = document.querySelector('#filter-category').closest('.mdc-select').MDCSelect;
-        
-        typeSelect.selectedIndex = 0;
-        categorySelect.selectedIndex = 0;
-    }
-    
-    // Initialize chart tab functionality
-    initializeChartTabs();
+    // Setup transaction action buttons (Edit/Delete)
+    setupTransactionActions();
 });
 
 // Function to show form status messages
@@ -242,6 +227,8 @@ function saveTransaction(transaction) {
     })
     .then(response => response.json())
     .then(data => {
+        console.log("Save transaction response:", data);
+        
         // Show success message or error
         if (data.success) {
             // Reset form
@@ -252,11 +239,11 @@ function saveTransaction(transaction) {
             showFormStatus('Transaction added successfully!', 'success');
             
             // Reload transactions and summary
-            loadTransactions(getFilterParameters());
+            loadTransactions();
             loadSummary();
             
-            // Refresh charts
-            updateAllCharts();
+            // Update charts
+            updateCharts();
         } else {
             showFormStatus('Error saving transaction: ' + data.message, 'error');
         }
@@ -269,6 +256,12 @@ function saveTransaction(transaction) {
 
 // Function to update transaction
 function updateTransaction(transactionId, updatedTransaction) {
+    // Ensure transactionId is an integer
+    transactionId = parseInt(transactionId, 10);
+    
+    console.log("Updating transaction ID:", transactionId);
+    console.log("With data:", updatedTransaction);
+    
     fetch(`/transactions/${transactionId}`, {
         method: 'PUT',
         headers: {
@@ -276,22 +269,26 @@ function updateTransaction(transactionId, updatedTransaction) {
         },
         body: JSON.stringify(updatedTransaction)
     })
-    .then(response => response.json())
+    .then(response => {
+        console.log("Update response status:", response.status);
+        return response.json();
+    })
     .then(data => {
+        console.log("Update response data:", data);
+        
         if (data.success) {
-            // Close the dialog
-            const editDialog = document.querySelector('#edit-transaction-dialog').MDCDialog;
-            editDialog.close();
+            // Close the modal
+            document.getElementById('edit-modal').style.display = 'none';
             
             // Show success message
             showFormStatus('Transaction updated successfully!', 'success');
             
             // Reload transactions and summary
-            loadTransactions(getFilterParameters());
+            loadTransactions();
             loadSummary();
             
-            // Refresh charts
-            updateAllCharts();
+            // Update charts
+            updateCharts();
         } else {
             showFormStatus('Error updating transaction: ' + data.message, 'error');
         }
@@ -304,25 +301,37 @@ function updateTransaction(transactionId, updatedTransaction) {
 
 // Function to delete transaction
 function deleteTransaction(transactionId) {
+    // Ensure transactionId is an integer
+    transactionId = parseInt(transactionId, 10);
+    
+    console.log("Deleting transaction ID:", transactionId);
+    
     fetch(`/transactions/${transactionId}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json',
+        }
     })
-    .then(response => response.json())
+    .then(response => {
+        console.log("Delete response status:", response.status);
+        return response.json();
+    })
     .then(data => {
+        console.log("Delete response data:", data);
+        
         if (data.success) {
-            // Close the dialog
-            const deleteDialog = document.querySelector('#delete-transaction-dialog').MDCDialog;
-            deleteDialog.close();
+            // Close the modal
+            document.getElementById('delete-modal').style.display = 'none';
             
             // Show success message
             showFormStatus('Transaction deleted successfully!', 'success');
             
             // Reload transactions and summary
-            loadTransactions(getFilterParameters());
+            loadTransactions();
             loadSummary();
             
-            // Refresh charts
-            updateAllCharts();
+            // Update charts
+            updateCharts();
         } else {
             showFormStatus('Error deleting transaction: ' + data.message, 'error');
         }
@@ -335,6 +344,8 @@ function deleteTransaction(transactionId) {
 
 // Function to load transactions with optional filters
 function loadTransactions(filters = {}) {
+    console.log("Loading transactions with filters:", filters);
+    
     // Build query string from filters
     const queryParams = new URLSearchParams();
     for (const [key, value] of Object.entries(filters)) {
@@ -348,6 +359,7 @@ function loadTransactions(filters = {}) {
     fetch(`/transactions${queryString}`)
     .then(response => response.json())
     .then(data => {
+        console.log("Loaded transactions:", data);
         displayTransactions(data);
     })
     .catch(error => {
@@ -371,10 +383,11 @@ function loadSummary(filters = {}) {
     fetch(`/summary${queryString}`)
     .then(response => response.json())
     .then(data => {
+        console.log("Summary data:", data);
         updateSummary(data);
         
         // Update charts with the new data
-        updateAllCharts(data);
+        updateCharts(data);
     })
     .catch(error => {
         console.error('Error:', error);
@@ -386,18 +399,32 @@ function loadSummary(filters = {}) {
 function displayTransactions(transactions) {
     const transactionsList = document.getElementById('transactions-list');
     const noTransactionsMsg = document.getElementById('no-transactions');
+    const transactionsTable = document.getElementById('transactions-table');
+    
+    if (!transactionsList) {
+        console.error("Transactions list element not found");
+        return;
+    }
     
     // Clear existing transactions
     transactionsList.innerHTML = '';
     
     if (transactions.length === 0) {
-        noTransactionsMsg.style.display = 'block';
-        document.getElementById('transactions-table').style.display = 'none';
+        if (noTransactionsMsg) {
+            noTransactionsMsg.style.display = 'block';
+        }
+        if (transactionsTable) {
+            transactionsTable.style.display = 'none';
+        }
         return;
     }
     
-    noTransactionsMsg.style.display = 'none';
-    document.getElementById('transactions-table').style.display = 'table';
+    if (noTransactionsMsg) {
+        noTransactionsMsg.style.display = 'none';
+    }
+    if (transactionsTable) {
+        transactionsTable.style.display = 'table';
+    }
     
     // Sort transactions by date (newest first)
     transactions.sort((a, b) => new Date(b.date) - new Date(a.date));
@@ -405,9 +432,8 @@ function displayTransactions(transactions) {
     // Add each transaction to the table
     transactions.forEach(transaction => {
         const row = document.createElement('tr');
-        row.classList.add('mdc-data-table__row');
         
-        // Determine transaction type if not explicitly set
+        // Determine transaction type
         const type = transaction.type || (transaction.amount >= 0 ? 'income' : 'expense');
         row.classList.add(`transaction-type-${type}`);
         
@@ -419,42 +445,43 @@ function displayTransactions(transactions) {
             day: 'numeric'
         });
         
-        // Determine if income or expense for styling
+        // Determine styling for amount
         const amountClass = type === 'income' ? 'income-amount' : 'expense-amount';
         const formattedAmount = formatCurrency(transaction.amount);
         
-        // Create cells
+        // Create cells with data attributes for easy extraction when editing
         const dateCell = document.createElement('td');
-        dateCell.classList.add('mdc-data-table__cell');
         dateCell.textContent = formattedDate;
+        dateCell.setAttribute('data-field', 'date');
+        dateCell.setAttribute('data-isodate', transaction.date);
         
         const titleCell = document.createElement('td');
-        titleCell.classList.add('mdc-data-table__cell');
         titleCell.textContent = transaction.title;
+        titleCell.setAttribute('data-field', 'title');
         
         const categoryCell = document.createElement('td');
-        categoryCell.classList.add('mdc-data-table__cell');
         categoryCell.textContent = transaction.category || (type === 'income' ? 'Other Income' : 'Other Expense');
+        categoryCell.setAttribute('data-field', 'category');
         
         const amountCell = document.createElement('td');
-        amountCell.classList.add('mdc-data-table__cell', amountClass);
         amountCell.textContent = formattedAmount;
+        amountCell.className = amountClass;
+        amountCell.setAttribute('data-field', 'amount');
         
         // Action buttons cell
         const actionsCell = document.createElement('td');
-        actionsCell.classList.add('mdc-data-table__cell');
         
         // Create edit button
         const editButton = document.createElement('i');
-        editButton.classList.add('material-icons', 'action-button', 'edit-button');
+        editButton.className = 'material-icons action-button edit-button';
         editButton.textContent = 'edit';
-        editButton.addEventListener('click', () => openEditDialog(transaction));
+        editButton.setAttribute('data-id', transaction.id);
         
         // Create delete button
         const deleteButton = document.createElement('i');
-        deleteButton.classList.add('material-icons', 'action-button', 'delete-button');
+        deleteButton.className = 'material-icons action-button delete-button';
         deleteButton.textContent = 'delete';
-        deleteButton.addEventListener('click', () => openDeleteDialog(transaction.id));
+        deleteButton.setAttribute('data-id', transaction.id);
         
         actionsCell.appendChild(editButton);
         actionsCell.appendChild(deleteButton);
@@ -465,6 +492,9 @@ function displayTransactions(transactions) {
         row.appendChild(categoryCell);
         row.appendChild(amountCell);
         row.appendChild(actionsCell);
+        
+        // Add the transaction ID as a data attribute for future reference
+        row.setAttribute('data-id', transaction.id);
         
         transactionsList.appendChild(row);
     });
@@ -479,66 +509,124 @@ function updateSummary(data) {
 
 // Function to format currency (pounds)
 function formatCurrency(amount) {
-    return '£' + Math.abs(amount).toFixed(2);
+    return '£' + Math.abs(Number(amount)).toFixed(2);
 }
 
 // Function to get current filter parameters
 function getFilterParameters() {
     const startDate = document.getElementById('filter-start-date').value;
     const endDate = document.getElementById('filter-end-date').value;
-    
-    let type = '';
-    let category = '';
-    
-    const typeSelectElement = document.querySelector('#filter-type').closest('.mdc-select');
-    if (typeSelectElement && typeSelectElement.MDCSelect) {
-        type = typeSelectElement.MDCSelect.value === 'all' ? '' : typeSelectElement.MDCSelect.value;
-    }
-    
-    const categorySelectElement = document.querySelector('#filter-category').closest('.mdc-select');
-    if (categorySelectElement && categorySelectElement.MDCSelect) {
-        category = categorySelectElement.MDCSelect.value === 'all' ? '' : categorySelectElement.MDCSelect.value;
-    }
+    const type = document.getElementById('filter-type').value;
+    const category = document.getElementById('filter-category').value;
     
     return {
         start_date: startDate,
         end_date: endDate,
-        type: type,
-        category: category
+        type: type === 'all' ? '' : type,
+        category: category === 'all' ? '' : category
     };
 }
 
-// Function to open edit transaction dialog
-function openEditDialog(transaction) {
-    // Get the dialog
-    const editDialog = document.querySelector('#edit-transaction-dialog').MDCDialog;
-    
-    // Set form values
-    document.getElementById('edit-transaction-id').value = transaction.id;
-    document.getElementById('edit-title').value = transaction.title;
-    document.getElementById('edit-amount').value = Math.abs(transaction.amount);
-    document.getElementById('edit-date').value = transaction.date;
-    
-    // Set transaction type select
-    const typeSelect = document.querySelector('#edit-transaction-type').closest('.mdc-select').MDCSelect;
-    typeSelect.value = transaction.type;
-    
-    // Populate categories based on transaction type
-    populateEditCategories(transaction.type, document.getElementById('edit-category'));
-    
-    // Set category select after populating options
-    setTimeout(() => {
-        const categorySelect = document.querySelector('#edit-category').closest('.mdc-select').MDCSelect;
-        categorySelect.value = transaction.category;
-    }, 50);
-    
-    // Open the dialog
-    editDialog.open();
+// Function to clear filters
+function clearFilters() {
+    document.getElementById('filter-start-date').value = '';
+    document.getElementById('filter-end-date').value = '';
+    document.getElementById('filter-type').value = 'all';
+    document.getElementById('filter-category').value = 'all';
 }
 
-// Function to populate edit dialog categories
-function populateEditCategories(type, categoryElement) {
-    // Define categories
+// Function to setup transaction action buttons (edit/delete)
+function setupTransactionActions() {
+    // Use event delegation for action buttons
+    document.addEventListener('click', function(event) {
+        // Handle edit button clicks
+        if (event.target.classList.contains('edit-button')) {
+            const transactionId = event.target.getAttribute('data-id');
+            const row = event.target.closest('tr');
+            
+            if (row && transactionId) {
+                console.log("Edit clicked for transaction ID:", transactionId);
+                openEditModal(transactionId, row);
+            }
+        }
+        
+        // Handle delete button clicks
+        if (event.target.classList.contains('delete-button')) {
+            const transactionId = event.target.getAttribute('data-id');
+            
+            if (transactionId) {
+                console.log("Delete clicked for transaction ID:", transactionId);
+                openDeleteModal(transactionId);
+            }
+        }
+    });
+}
+
+// Function to open edit modal
+function openEditModal(transactionId, row) {
+    // Ensure transactionId is an integer
+    transactionId = parseInt(transactionId, 10);
+    
+    // Get transaction data from the row
+    const title = row.querySelector('[data-field="title"]').textContent;
+    const amountText = row.querySelector('[data-field="amount"]').textContent;
+    const amount = parseFloat(amountText.replace('£', ''));
+    const category = row.querySelector('[data-field="category"]').textContent;
+    const date = row.querySelector('[data-field="date"]').getAttribute('data-isodate');
+    const type = row.classList.contains('transaction-type-income') ? 'income' : 'expense';
+    
+    console.log("Transaction data for edit:", {
+        id: transactionId,
+        title,
+        amount,
+        category,
+        date,
+        type
+    });
+    
+    // Set values in the edit form
+    document.getElementById('edit-transaction-id').value = transactionId;
+    document.getElementById('edit-title').value = title;
+    document.getElementById('edit-amount').value = Math.abs(amount);
+    document.getElementById('edit-date').value = date;
+    
+    // Set transaction type radio
+    document.querySelector(`input[name="edit-transaction-type"][value="${type}"]`).checked = true;
+    
+    // Populate category options based on type
+    populateEditCategories(type);
+    
+    // Set selected category
+    const editCategorySelect = document.getElementById('edit-category');
+    
+    // Wait for categories to be populated
+    setTimeout(() => {
+        for (let i = 0; i < editCategorySelect.options.length; i++) {
+            if (editCategorySelect.options[i].value === category) {
+                editCategorySelect.selectedIndex = i;
+                break;
+            }
+        }
+    }, 10);
+    
+    // Show the modal
+    document.getElementById('edit-modal').style.display = 'block';
+}
+
+// Function to open delete modal
+function openDeleteModal(transactionId) {
+    // Ensure transactionId is an integer
+    transactionId = parseInt(transactionId, 10);
+    
+    // Set the transaction ID in the delete modal
+    document.getElementById('delete-transaction-id').value = transactionId;
+    
+    // Show the modal
+    document.getElementById('delete-modal').style.display = 'block';
+}
+
+// Function to populate edit categories dropdown
+function populateEditCategories(type) {
     const categories = {
         income: [
             'Salary',
@@ -564,65 +652,86 @@ function populateEditCategories(type, categoryElement) {
         ]
     };
     
-    // Clear existing options
-    categoryElement.innerHTML = '';
+    const categorySelect = document.getElementById('edit-category');
+    
+    // Clear current options
+    categorySelect.innerHTML = '';
     
     // Add new options based on type
     categories[type].forEach(category => {
-        const listItem = document.createElement('li');
-        listItem.classList.add('mdc-list-item');
-        listItem.dataset.value = category;
-        
-        const rippleSpan = document.createElement('span');
-        rippleSpan.classList.add('mdc-list-item__ripple');
-        
-        const textSpan = document.createElement('span');
-        textSpan.classList.add('mdc-list-item__text');
-        textSpan.textContent = category;
-        
-        listItem.appendChild(rippleSpan);
-        listItem.appendChild(textSpan);
-        categoryElement.appendChild(listItem);
+        const option = document.createElement('option');
+        option.value = category;
+        option.textContent = category;
+        categorySelect.appendChild(option);
+    });
+}
+
+// Function to setup modal functionality
+function setupModalFunctionality() {
+    // Close button functionality
+    const closeButtons = document.querySelectorAll('.close-button');
+    closeButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const modal = this.closest('.modal');
+            if (modal) {
+                modal.style.display = 'none';
+            }
+        });
     });
     
-    // Make sure to reinitialize the MDC select
-    const select = categoryElement.closest('.mdc-select');
-    if (select && select.MDCSelect) {
-        select.MDCSelect.layoutOptions();
-    }
-}
-
-// Function to open delete transaction dialog
-function openDeleteDialog(transactionId) {
-    // Get the dialog
-    const deleteDialog = document.querySelector('#delete-transaction-dialog').MDCDialog;
+    // Cancel button functionality
+    const cancelButtons = document.querySelectorAll('.cancel-button');
+    cancelButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const modal = this.closest('.modal');
+            if (modal) {
+                modal.style.display = 'none';
+            }
+        });
+    });
     
-    // Set the transaction ID
-    document.getElementById('delete-transaction-id').value = transactionId;
+    // Close modal when clicking outside
+    window.addEventListener('click', function(event) {
+        if (event.target.classList.contains('modal')) {
+            event.target.style.display = 'none';
+        }
+    });
     
-    // Open the dialog
-    deleteDialog.open();
-}
-
-// Initialize event listeners for edit and delete dialogs
-document.addEventListener('DOMContentLoaded', function() {
-    // Set up edit transaction form submission
-    const saveEditBtn = document.getElementById('save-edit-btn');
-    if (saveEditBtn) {
-        saveEditBtn.addEventListener('click', function() {
+    // Edit form submission
+    const editForm = document.getElementById('edit-transaction-form');
+    if (editForm) {
+        editForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
             const transactionId = document.getElementById('edit-transaction-id').value;
             const title = document.getElementById('edit-title').value;
             let amount = parseFloat(document.getElementById('edit-amount').value);
-            const typeSelect = document.querySelector('#edit-transaction-type').closest('.mdc-select').MDCSelect;
-            const categorySelect = document.querySelector('#edit-category').closest('.mdc-select').MDCSelect;
-            const type = typeSelect.value;
-            const category = categorySelect.value;
             const date = document.getElementById('edit-date').value;
+            
+            // Get transaction type from radio buttons
+            let type = 'income'; // Default
+            const typeRadios = document.getElementsByName('edit-transaction-type');
+            for (let radio of typeRadios) {
+                if (radio.checked) {
+                    type = radio.value;
+                    break;
+                }
+            }
+            
+            // Get category
+            const category = document.getElementById('edit-category').value;
             
             // Validate inputs
             if (!title || isNaN(amount) || !date) {
-                showFormStatus('Please fill in all required fields', 'error');
+                alert('Please fill in all required fields');
                 return;
+            }
+            
+            // Adjust amount based on type
+            if (type === 'expense') {
+                amount = -Math.abs(amount);
+            } else {
+                amount = Math.abs(amount);
             }
             
             // Create updated transaction object
@@ -639,7 +748,15 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Set up delete transaction confirmation
+    // Type change in edit form
+    const typeRadios = document.getElementsByName('edit-transaction-type');
+    typeRadios.forEach(radio => {
+        radio.addEventListener('change', function() {
+            populateEditCategories(this.value);
+        });
+    });
+    
+    // Delete confirmation
     const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
     if (confirmDeleteBtn) {
         confirmDeleteBtn.addEventListener('click', function() {
@@ -647,13 +764,15 @@ document.addEventListener('DOMContentLoaded', function() {
             deleteTransaction(transactionId);
         });
     }
-    
-    // Handle transaction type change in edit dialog
-    const editTypeSelect = document.querySelector('#edit-transaction-type');
-    if (editTypeSelect) {
-        editTypeSelect.addEventListener('MDCSelect:change', function(e) {
-            const type = e.detail.value;
-            populateEditCategories(type, document.getElementById('edit-category'));
-        });
+}
+
+// Function to update all charts
+function updateCharts(data) {
+    // This function is implemented in charts.js
+    if (typeof initializeCharts === 'function') {
+        console.log("Updating charts with data:", data);
+        initializeCharts(data);
+    } else {
+        console.log("Chart initialization function not found");
     }
-});
+}

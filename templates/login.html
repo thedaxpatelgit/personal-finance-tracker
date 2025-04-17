@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Personal Finance Tracker</title>
+    <!-- Google Fonts - Nunito -->
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <!-- Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <link rel="stylesheet" href="/static/css/auth.css">
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <i class="material-icons auth-icon">account_balance_wallet</i>
+                <h1>Personal Finance Tracker</h1>
+                <p class="auth-subtitle">Sign in to your account</p>
+            </div>
+            
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="auth-alert auth-alert-{{ category }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            
+            <form class="auth-form" action="{{ url_for('login') }}" method="post">
+                <div class="auth-form-group">
+                    <label for="username">Username</label>
+                    <div class="auth-input-container">
+                        <i class="material-icons auth-input-icon">person</i>
+                        <input type="text" id="username" name="username" class="auth-input" placeholder="Enter your username" required>
+                    </div>
+                </div>
+                
+                <div class="auth-form-group">
+                    <label for="password">Password</label>
+                    <div class="auth-input-container">
+                        <i class="material-icons auth-input-icon">lock</i>
+                        <input type="password" id="password" name="password" class="auth-input" placeholder="Enter your password" required>
+                    </div>
+                </div>
+                
+                <button type="submit" class="auth-button">Sign In</button>
+            </form>
+            
+            <div class="auth-footer">
+                <p>Don't have an account? <a href="{{ url_for('register') }}">Sign Up</a></p>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Check for dark mode preference
+        if (localStorage.getItem('dark-theme') === 'true') {
+            document.body.classList.add('dark-theme');
+        }
+    </script>
+</body>
+</html>

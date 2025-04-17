@@ -30,5 +30,21 @@
         "type": "expense",
         "category": "Utilities",
         "date": "2025-04-15"
+    },
+    {
+        "id": 1744896900.580481,
+        "title": "vegetables",
+        "amount": -300.0,
+        "type": "expense",
+        "category": "Salary",
+        "date": "2025-04-17"
+    },
+    {
+        "id": 1744897667.287648,
+        "title": "Birthday gift",
+        "amount": 200.0,
+        "type": "income",
+        "category": "Gift",
+        "date": "2025-04-17"
     }
 ]
